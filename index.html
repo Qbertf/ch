@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمونه شبیه Telegraph - ویرایشگر متن ساده</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f2f2f2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .editor-panel, .preview-panel {
+            padding: 2rem;
+        }
+
+        .editor-panel {
+            border-bottom: 1px solid #eaeaea;
+            background: #fefefe;
+        }
+
+        .preview-panel {
+            background: white;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        input, textarea {
+            width: 100%;
+            font-family: inherit;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: 0.2s;
+            margin-bottom: 1rem;
+            background: white;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .media-section {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .media-row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .media-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .btn-outline:hover {
+            background: #eef2ff;
+        }
+
+        .article-preview {
+            max-width: 700px;
+            margin: 0 auto;
+            font-family: 'Georgia', serif;
+            line-height: 1.7;
+        }
+
+        .article-preview h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        .article-preview .content {
+            font-size: 1.1rem;
+            color: #2d2d2d;
+        }
+
+        .article-preview img, .article-preview video {
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: block;
+        }
+
+        .article-preview .caption {
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: -12px;
+            margin-bottom: 20px;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .badge {
+            background: #e6f0ff;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="editor-panel">
+        <h2>📝 ویرایشگر (مثل Telegraph)</h2>
+        <input type="text" id="titleInput" placeholder="عنوان مقاله ..." value="چگونه یک مقاله ساده منتشر کنیم">
+        <textarea id="bodyInput" placeholder="متن مقاله را اینجا بنویسید ... (پشتیبانی از پاراگراف و لینک)">سلام! این یک نمونه مقاله زیبا و خوانا است.  
+می‌توانید هر متنی بنویسید، عکس و ویدیو اضافه کنید.  
+هدف شبیه‌سازی ظاهر ساده و تمیز Telegraph است.</textarea>
+
+        <div class="media-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge">🖼️ رسانه</span>
+                <button id="addImageBtn" class="btn-outline" style="font-size:0.8rem;">+ افزودن عکس</button>
+                <button id="addVideoBtn" class="btn-outline" style="font-size:0.8rem;">+ افزودن ویدیو</button>
+            </div>
+            <div id="mediaList"></div>
+            <p style="font-size:0.75rem; color:#888; margin-top:8px;">لینک مستقیم عکس یا ویدیو (mp4, youtube پشتیبانی نمی‌شود، فقط فایل مستقیم)</p>
+        </div>
+        
+        <div style="text-align: left; margin-top: 1rem;">
+            <button id="refreshPreview">🔄 بروزرسانی پیش‌نمایش</button>
+        </div>
+    </div>
+
+    <div class="preview-panel">
+        <h2>📄 پیش‌نمایش مقاله (سبک Telegraph)</h2>
+        <div id="previewContainer" class="article-preview"></div>
+    </div>
+</div>
+
+<script>
+    // آرایه برای ذخیره مدیاها { type, url, caption }
+    let mediaItems = [];
+
+    // عناصر DOM
+    const titleInput = document.getElementById('titleInput');
+    const bodyInput = document.getElementById('bodyInput');
+    const mediaListDiv = document.getElementById('mediaList');
+    const previewContainer = document.getElementById('previewContainer');
+    const refreshBtn = document.getElementById('refreshPreview');
+
+    // رندر لیست مدیا در بخش ویرایشگر
+    function renderMediaEditor() {
+        if (!mediaListDiv) return;
+        if (mediaItems.length === 0) {
+            mediaListDiv.innerHTML = '<p style="color:#aaa; font-size:0.8rem; margin:10px 0;">هنوز عکس یا ویدیویی اضافه نشده است.</p>';
+            return;
+        }
+
+        let html = '';
+        mediaItems.forEach((item, index) => {
+            html += `<div class="media-row" style="background: white; padding: 8px; border-radius: 10px; margin-top: 8px;">
+                        <span style="font-weight:bold;">${item.type === 'image' ? '🖼️ عکس' : '🎥 ویدیو'}</span>
+                        <input type="text" id="mediaUrl_${index}" value="${escapeHtml(item.url)}" placeholder="لینک مستقیم" style="flex:2;">
+                        <input type="text" id="mediaCaption_${index}" value="${escapeHtml(item.caption)}" placeholder="توضیح (اختیاری)" style="flex:2;">
+                        <button class="remove-media" data-index="${index}" style="background:#ef4444; padding:6px 12px;">حذف</button>
+                    </div>`;
+        });
+        mediaListDiv.innerHTML = html;
+
+        // اتصال رویداد حذف
+        document.querySelectorAll('.remove-media').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.getAttribute('data-index'));
+                if (!isNaN(idx)) {
+                    mediaItems.splice(idx, 1);
+                    renderMediaEditor();
+                    updatePreview();
+                }
+            });
+        });
+
+        // اتصال رویداد تغییر به اینپوت‌های لینک و کپشن
+        mediaItems.forEach((_, idx) => {
+            const urlInput = document.getElementById(`mediaUrl_${idx}`);
+            const captionInput = document.getElementById(`mediaCaption_${idx}`);
+            if (urlInput) {
+                urlInput.addEventListener('input', (e) => {
+                    mediaItems[idx].url = e.target.value;
+                    updatePreview();
+                });
+            }
+            if (captionInput) {
+                captionInput.addEventListener('input', (e) => {
+                    mediaItems[idx].caption = e.target.value;
+                    updatePreview();
+                });
+            }
+        });
+    }
+
+    // افزودن مدیا جدید
+    function addMedia(type) {
+        mediaItems.push({
+            type: type,
+            url: '',
+            caption: ''
+        });
+        renderMediaEditor();
+        updatePreview();
+    }
+
+    // تابع escapeHtml ساده برای امنیت
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // تبدیل متن ساده به پاراگراف و برسی لینک خودکار (ساده)
+    function formatTextToHtml(text) {
+        if (!text) return '';
+        // فرار از HTML تگ‌های خطرناک ولی اجازه لینک ساده
+        let escaped = escapeHtml(text);
+        // تبدیل لاین بریک به <br> و پاراگراف‌های دوخطی
+        let paragraphs = escaped.split(/\n\s*\n/);
+        let formatted = paragraphs.map(p => {
+            let lines = p.split(/\n/).filter(l => l.trim().length > 0);
+            if (lines.length === 1) return `<p>${lines[0]}</p>`;
+            let inner = lines.map(l => l.trim()).join('<br>');
+            return `<p>${inner}</p>`;
+        }).join('');
+        
+        // تبدیل لینک‌های ساده (http/https) به تگ a
+        formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#3b82f6;">$1</a>');
+        return formatted;
+    }
+
+    // رندر کامل پیش‌نمایش
+    function updatePreview() {
+        const title = titleInput.value.trim() || 'بدون عنوان';
+        const bodyText = bodyInput.value;
+
+        let mediaHtml = '';
+        for (let item of mediaItems) {
+            if (!item.url || item.url.trim() === '') continue;
+            const url = item.url.trim();
+            const cap = item.caption ? `<div class="caption">${escapeHtml(item.caption)}</div>` : '';
+            if (item.type === 'image') {
+                mediaHtml += `<img src="${escapeHtml(url)}" alt="${escapeHtml(item.caption || 'تصویر')}" loading="lazy" onerror="this.style.opacity='0.5'; this.alt='لینک نامعتبر'">`;
+                mediaHtml += cap;
+            } else if (item.type === 'video') {
+                // برای ویدیو از تگ video استفاده می‌کنیم، mp4/ogg/webm قابل پشتیبانه
+                mediaHtml += `<video controls style="max-width:100%; border-radius:12px;" poster="">
+                                <source src="${escapeHtml(url)}" type="video/mp4">
+                                مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
+                              </video>`;
+                mediaHtml += cap;
+            }
+        }
+
+        const formattedBody = formatTextToHtml(bodyText);
+        
+        const fullHtml = `
+            <h1>${escapeHtml(title)}</h1>
+            <div class="content">
+                ${formattedBody}
+                ${mediaHtml ? `<div class="media-wrapper">${mediaHtml}</div>` : ''}
+            </div>
+            <hr>
+            <div style="font-size:0.8rem; color:#6c757d; text-align:center;">✨ ساخته شده با الهام از Telegraph | انتشار آنی و ساده</div>
+        `;
+        
+        previewContainer.innerHTML = fullHtml;
+    }
+
+    // رویدادها
+    refreshBtn.addEventListener('click', () => {
+        updatePreview();
+    });
+    
+    titleInput.addEventListener('input', updatePreview);
+    bodyInput.addEventListener('input', updatePreview);
+    
+    document.getElementById('addImageBtn').addEventListener('click', () => addMedia('image'));
+    document.getElementById('addVideoBtn').addEventListener('click', () => addMedia('video'));
+    
+    // بار اولیه با چند نمونه مدیا تست
+    mediaItems.push({
+        type: 'image',
+        url: 'https://picsum.photos/id/1015/800/450',
+        caption: 'منظره کوهستانی، نمونه عکس'
+    });
+    renderMediaEditor();
+    updatePreview();
+</script>
+</body>
+</html>
